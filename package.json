@@ -1,0 +1,17 @@
+{
+  "name": "food-o-friend-hackathon",
+  "version": "1.0.0",
+  "description": "AI-powered web application that analyzes food items for carb content, providing personalized recommendations for diabetics and health-conscious users. Integrating data from RecipeDB and FlavorDB.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"bgBlue.bold,bgGreen.bold\" \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "install-all": "npm install && npm install --prefix backend && npm install --prefix frontend"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

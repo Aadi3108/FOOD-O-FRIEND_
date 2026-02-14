@@ -1,0 +1,62 @@
+### Quick API Test
+
+You can test the API using the REST Client extension in VS Code or any HTTP client.
+
+### Analyze Food Request
+
+POST http://localhost:5000/api/analyze
+Content-Type: application/json
+
+{
+    "food": "Banana",
+    "grams": 100,
+    "mode": "normal"
+}
+
+### Expected Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "food": "Banana",
+    "grams": 100,
+    "mode": "normal",
+    "nutrition": {
+      "carbsPerServing": 23,
+      "servingSizeInGrams": 100,
+      "totalCarbs": 23
+    },
+    "decision": "Comfortable",
+    "color": "green",
+    "message": "Great choice within your limits!",
+    "alternatives": [],
+    "flavorPairings": ["cinnamon", "vanilla", "nutmeg"]
+  }
+}
+```
+
+### High Carb Request (Diabetes Mode)
+
+POST http://localhost:5000/api/analyze
+Content-Type: application/json
+
+{
+    "food": "Pizza",
+    "grams": 200,
+    "mode": "diabetes"
+}
+
+### Expected Response (High Risk)
+
+```json
+{
+  "success": true,
+  "data": {
+    "food": "Pizza",
+    "decision": "High",
+    "color": "red",
+    "message": "Caution: This portion exceeds your recommended carb limit."
+  }
+}
+```
