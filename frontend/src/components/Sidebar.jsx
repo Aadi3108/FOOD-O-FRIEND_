@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Search, Heart, Activity, Settings, ClipboardList } from 'lucide-react';
+import { Home, Search, Heart, Activity, Settings, ClipboardList, Zap } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 const Sidebar = () => {
@@ -11,6 +11,7 @@ const Sidebar = () => {
     const navItems = [
         { name: "Dashboard", path: "/dashboard", icon: <Home className="w-5 h-5" /> },
         { name: "Analyzer", path: "/analyzer", icon: <Search className="w-5 h-5" /> },
+        { name: "Smart Replacements", path: "/substitution", icon: <Zap className="w-5 h-5 text-brand-400" /> },
         { name: "Records", path: "/records", icon: <ClipboardList className="w-5 h-5" /> },
         { name: "Care", path: "/recipes", icon: <Heart className="w-5 h-5" /> },
         // { name: "Settings", path: "/settings", icon: <Settings className="w-5 h-5" /> },
@@ -60,12 +61,24 @@ const Sidebar = () => {
 
             {/* User Profile Mini */}
             <div className="p-4 border-t border-white/5">
-                <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-800 transition-colors cursor-pointer">
-                    <div className="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-white font-bold border border-slate-600">
+                <div
+                    onClick={() => navigate('/profile')}
+                    className={twMerge(
+                        "flex items-center gap-3 p-3 rounded-xl transition-all cursor-pointer group",
+                        isActive('/profile') ? "bg-brand-500/10 border border-brand-500/20" : "hover:bg-slate-800"
+                    )}
+                >
+                    <div className={twMerge(
+                        "w-10 h-10 rounded-full flex items-center justify-center text-white font-bold border transition-all",
+                        isActive('/profile') ? "bg-brand-500 border-white/20" : "bg-slate-700 border-slate-600 group-hover:bg-slate-600"
+                    )}>
                         M
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-sm font-medium text-white">Matthew Jensen</span>
+                        <span className={twMerge(
+                            "text-sm font-medium transition-colors",
+                            isActive('/profile') ? "text-brand-400" : "text-white"
+                        )}>Matthew Jensen</span>
                         <span className="text-xs text-slate-500">Premium User</span>
                     </div>
                 </div>

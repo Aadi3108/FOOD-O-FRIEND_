@@ -25,7 +25,15 @@ const getFlavorProfile = (food) => {
 };
 
 const axios = require('axios');
-const FLAVOR_DB_API = process.env.FLAVORDB_API_URL || 'https://coslab.iiitd.edu.in/flavordb/api';
+const FLAVOR_DB_API = process.env.FLAVORDB_API_URL;
+const BEARER_TOKEN = process.env.COSYLAB_BEARER_TOKEN;
+
+const flavorApi = axios.create({
+    baseURL: FLAVOR_DB_API,
+    headers: {
+        'Authorization': `Bearer ${BEARER_TOKEN}`
+    }
+});
 
 async function getFlavorPairings(foodName) {
     try {
@@ -33,15 +41,14 @@ async function getFlavorPairings(foodName) {
         // 🔌 REAL API INTEGRATION (Replacing Mock Data)
         // ---------------------------------------------------------
         // First find the entity ID
-        const searchRes = await axios.get(`${FLAVOR_DB_API}/entities`, {
-            params: { name: foodName }
+        // CoSyLab FlavorDB Search
+        const searchRes = await flavorApi.get(`/food/by-alias`, {
+            params: { food_pair: foodName }
         });
 
-        if (searchRes.data && searchRes.data.length > 0) {
-            const entityId = searchRes.data[0].id;
-            // Get detailed pairings for that ID
-            const detailRes = await axios.get(`${FLAVOR_DB_API}/entities/${entityId}`);
-            return detailRes.data.pairings || getFlavorProfile(foodName);
+        if (searchRes.data && searchRes.data.data && searchRes.data.data.length > 0) {
+            const data = searchRes.data.data;
+            return data.map(d => d.entity_alias || d.name) || getFlavorProfile(foodName);
         }
 
         return getFlavorProfile(foodName);

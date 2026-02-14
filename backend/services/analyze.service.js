@@ -1,6 +1,8 @@
 const recipeService = require('./recipe.service');
 const flavorService = require('./flavor.service');
 const Log = require('../models/Log');
+const glycemicDB = require('../data/glycemicIndex.data');
+const { calculateGlycemicRisk } = require('../utils/glycemic.util');
 
 const THRESHOLDS = {
     normal: { moderate: 30, high: 50 },
@@ -9,12 +11,16 @@ const THRESHOLDS = {
     diabetes: { moderate: 25, high: 40 }
 };
 
+function generateAdvice(level) {
+    if (level === "Low") return "Safe choice 👍";
+    if (level === "Moderate") return "Eat moderately ⚠️";
+    return "High risk ❌ Consider alternatives";
+}
+
 async function analyzeFood({ food, grams, mode, userId }) {
     // 1. Get Nutrition Info
     const nutritionData = await recipeService.getNutrition(food);
 
-    // Calculate carbs per gram
-    // Assuming nutritionData returns { carbs: totalCarbsInServing, servingSize: servingSizeGrams }
     const carbsPerServing = nutritionData.nutrition.carbs;
     const servingSize = nutritionData.nutrition.servingSize;
 
@@ -23,27 +29,16 @@ async function analyzeFood({ food, grams, mode, userId }) {
     const carbsPerGram = carbsPerServing / servingSize;
     const requestedCarbs = carbsPerGram * grams;
 
-    // 2. Determine Thresholds
-    const userMode = THRESHOLDS[mode] || THRESHOLDS['normal'];
-    let decision = 'Comfortable';
-    let color = 'green';
-    let message = "Great choice within your limits!";
+    // 2. Glycemic Risk Calculation
+    const gi = glycemicDB[food.toLowerCase()] || 50; // default GI
+    const glycemic = calculateGlycemicRisk(requestedCarbs, gi, mode);
 
-    if (requestedCarbs >= userMode.high) {
-        decision = 'High';
-        color = 'red';
-        message = "Caution: This portion exceeds your recommended carb limit.";
-    } else if (requestedCarbs >= userMode.moderate) {
-        decision = 'Moderate';
-        color = 'yellow';
-        message = "Moderate intake. Consider smaller portions or balancing with protein.";
-    }
-
-    // 3. Get Flavor Suggestions (if needed or always)
+    // 3. Get Flavor Suggestions
     const flavorPairings = await flavorService.getFlavorPairings(food);
     let alternatives = [];
 
-    if (decision === 'High' || decision === 'Moderate') {
+    // Check if we should get alternatives based on glycemic risk or raw carbs
+    if (glycemic.riskLevel === 'High' || glycemic.riskLevel === 'Moderate') {
         alternatives = await flavorService.getAlternatives(food);
     }
 
@@ -56,11 +51,13 @@ async function analyzeFood({ food, grams, mode, userId }) {
             servingSizeInGrams: servingSize,
             totalCarbs: parseFloat(requestedCarbs.toFixed(1))
         },
-        decision,
-        color, // backend suggestion for frontend
-        message,
-        alternatives,
-        flavorPairings
+        glycemicIndex: gi,
+        glycemicLoad: glycemic.glycemicLoad,
+        riskLevel: glycemic.riskLevel,
+        score: glycemic.score,
+        advice: generateAdvice(glycemic.riskLevel),
+        flavorPairings,
+        alternatives
     };
 
     // 4. Log to Database
@@ -74,9 +71,9 @@ async function analyzeFood({ food, grams, mode, userId }) {
                 servingSizeInGrams: servingSize,
                 totalCarbs: result.nutrition.totalCarbs
             },
-            decision,
-            score: 100 - result.nutrition.totalCarbs, // Placeholder score algo
-            message,
+            decision: result.riskLevel,
+            score: result.score,
+            message: result.advice,
             userId: userId || null
         });
         await newLog.save();
