@@ -1,13 +1,39 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Mail, ShieldCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Mail, ShieldCheck, User, Lock, ArrowRight, Loader } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
     const navigate = useNavigate();
+    const { login, signup } = useAuth();
+    const [isLogin, setIsLogin] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleLogin = (e) => {
+    const [formData, setFormData] = useState({
+        username: '',
+        email: '',
+        password: ''
+    });
+
+    const handleAuth = async (e) => {
         e.preventDefault();
-        navigate('/dashboard');
+        setLoading(true);
+        setError('');
+
+        try {
+            if (isLogin) {
+                await login(formData.email, formData.password);
+            } else {
+                await signup(formData.username, formData.email, formData.password);
+            }
+            navigate('/dashboard');
+        } catch (err) {
+            setError(err.response?.data?.message || 'Authentication failed. Please try again.');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -38,76 +64,116 @@ const Login = () => {
             <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 bg-dark-900">
                 <div className="w-full max-w-md">
                     <div className="text-left mb-10">
-                        <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-                        <p className="text-slate-500">Start managing your recovery and diabetes goals today.</p>
+                        <h2 className="text-3xl font-bold text-white mb-2">
+                            {isLogin ? 'Welcome Back' : 'Create Account'}
+                        </h2>
+                        <p className="text-slate-500">
+                            {isLogin ? 'Start managing your recovery and diabetes goals today.' : 'Join Food-O-Friend and take control of your metabolic health.'}
+                        </p>
                     </div>
 
-                    {/* Social Auth */}
-                    <div className="grid grid-cols-2 gap-4 mb-8">
-                        <button className="flex items-center justify-center gap-2 py-3 px-4 bg-slate-800 hover:bg-slate-700/80 rounded-xl border border-slate-700 transition-all text-slate-300 font-medium text-sm">
-                            <span className="w-5 h-5 bg-white rounded-full flex items-center justify-center text-black font-bold text-xs">G</span>
-                            Google
-                        </button>
-                        <button className="flex items-center justify-center gap-2 py-3 px-4 bg-slate-800 hover:bg-slate-700/80 rounded-xl border border-slate-700 transition-all text-slate-300 font-medium text-sm">
-                            <span className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-xs">f</span>
-                            Facebook
-                        </button>
-                    </div>
+                    <AnimatePresence mode="wait">
+                        {error && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm font-medium"
+                            >
+                                {error}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
-                    <div className="relative mb-8">
-                        <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-slate-800"></div>
-                        </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="px-2 bg-dark-900 text-slate-500">Or continue with email</span>
-                        </div>
-                    </div>
+                    <form onSubmit={handleAuth} className="space-y-4">
+                        {!isLogin && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                className="space-y-1"
+                            >
+                                <label className="block text-sm font-medium text-slate-400 mb-1 pl-1 text-left">Username</label>
+                                <div className="relative">
+                                    <User className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
+                                    <input
+                                        type="text"
+                                        required
+                                        className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 transition-all font-bold"
+                                        placeholder="johndoe"
+                                        value={formData.username}
+                                        onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                                    />
+                                </div>
+                            </motion.div>
+                        )}
 
-                    <form onSubmit={handleLogin} className="space-y-6">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-400 mb-2 pl-1 text-left">Email Address</label>
+                        <div className="space-y-1">
+                            <label className="block text-sm font-medium text-slate-400 mb-1 pl-1 text-left">Email Address</label>
                             <div className="relative">
                                 <Mail className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
                                 <input
                                     type="email"
-                                    className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 transition-all"
+                                    required
+                                    className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 transition-all font-bold"
                                     placeholder="matthew@example.com"
-                                    value="user@demo.com"
-                                    readOnly
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                 />
                             </div>
                         </div>
 
-                        <div>
-                            <div className="flex justify-between mb-2 pl-1">
+                        <div className="space-y-1">
+                            <div className="flex justify-between mb-1 pl-1">
                                 <label className="block text-sm font-medium text-slate-400">Password</label>
-                                <a href="#" className="text-sm text-brand-500 hover:text-brand-400">Forgot?</a>
+                                {isLogin && <button type="button" className="text-sm text-brand-500 hover:text-brand-400">Forgot?</button>}
                             </div>
-                            <input
-                                type="password"
-                                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 px-4 text-white placeholder-slate-600 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 transition-all"
-                                value="password"
-                                readOnly
-                            />
+                            <div className="relative">
+                                <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
+                                <input
+                                    type="password"
+                                    required
+                                    autoComplete="current-password"
+                                    className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-brand-500/50 focus:ring-1 focus:ring-brand-500/50 transition-all font-bold"
+                                    placeholder="••••••••"
+                                    value={formData.password}
+                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                />
+                            </div>
                         </div>
 
-                        <div className="flex items-center pl-1">
-                            <input id="remember-me" type="checkbox" className="h-4 w-4 text-brand-600 focus:ring-brand-500 border-gray-700 rounded bg-gray-800" />
-                            <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-500">
-                                Remember me for 30 days
-                            </label>
-                        </div>
+                        {isLogin && (
+                            <div className="flex items-center pl-1 py-1">
+                                <input id="remember-me" type="checkbox" className="h-4 w-4 text-brand-600 focus:ring-brand-500 border-gray-700 rounded bg-gray-800" />
+                                <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-500">
+                                    Remember me for 30 days
+                                </label>
+                            </div>
+                        )}
 
                         <button
                             type="submit"
-                            className="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-500/20 transform transition-all hover:scale-[1.02] active:scale-[0.98]"
+                            disabled={loading}
+                            className="w-full bg-brand-500 hover:bg-brand-600 disabled:opacity-50 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-brand-500/20 transform transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
                         >
-                            Sign In
+                            {loading ? (
+                                <Loader className="w-5 h-5 animate-spin" />
+                            ) : (
+                                <>
+                                    {isLogin ? 'Sign In' : 'Create Account'}
+                                    <ArrowRight className="w-5 h-5" />
+                                </>
+                            )}
                         </button>
                     </form>
 
                     <p className="mt-8 text-center text-sm text-slate-500">
-                        Don't have an account? <a href="#" className="font-medium text-brand-500 hover:text-brand-400">Create an account</a>
+                        {isLogin ? "Don't have an account? " : "Already have an account? "}
+                        <button
+                            onClick={() => setIsLogin(!isLogin)}
+                            className="font-black text-brand-500 hover:text-brand-400 transition-colors"
+                        >
+                            {isLogin ? 'Create an account' : 'Sign In instead'}
+                        </button>
                     </p>
                 </div>
             </div>

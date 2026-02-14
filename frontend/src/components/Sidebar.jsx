@@ -1,12 +1,19 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Search, Heart, Activity, Settings, ClipboardList, Zap } from 'lucide-react';
+import { Home, Search, Heart, Activity, Settings, ClipboardList, Zap, LogOut } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { user, logout } = useAuth();
 
     const isActive = (path) => location.pathname === path;
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
     const navItems = [
         { name: "Dashboard", path: "/dashboard", icon: <Home className="w-5 h-5" /> },
@@ -14,7 +21,6 @@ const Sidebar = () => {
         { name: "Smart Replacements", path: "/substitution", icon: <Zap className="w-5 h-5 text-brand-400" /> },
         { name: "Records", path: "/records", icon: <ClipboardList className="w-5 h-5" /> },
         { name: "Care", path: "/recipes", icon: <Heart className="w-5 h-5" /> },
-        // { name: "Settings", path: "/settings", icon: <Settings className="w-5 h-5" /> },
     ];
 
     return (
@@ -59,8 +65,8 @@ const Sidebar = () => {
                 ))}
             </nav>
 
-            {/* User Profile Mini */}
-            <div className="p-4 border-t border-white/5">
+            {/* User Profile Mini & Logout */}
+            <div className="p-4 border-t border-white/5 space-y-2">
                 <div
                     onClick={() => navigate('/profile')}
                     className={twMerge(
@@ -72,16 +78,24 @@ const Sidebar = () => {
                         "w-10 h-10 rounded-full flex items-center justify-center text-white font-bold border transition-all",
                         isActive('/profile') ? "bg-brand-500 border-white/20" : "bg-slate-700 border-slate-600 group-hover:bg-slate-600"
                     )}>
-                        M
+                        {user?.username?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div className="flex flex-col">
                         <span className={twMerge(
                             "text-sm font-medium transition-colors",
                             isActive('/profile') ? "text-brand-400" : "text-white"
-                        )}>Matthew Jensen</span>
-                        <span className="text-xs text-slate-500">Premium User</span>
+                        )}>{user?.username || 'Guest User'}</span>
+                        <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Session Active</span>
                     </div>
                 </div>
+
+                <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-all text-sm font-medium"
+                >
+                    <LogOut className="w-5 h-5" />
+                    Sign Out
+                </button>
             </div>
         </aside>
     );

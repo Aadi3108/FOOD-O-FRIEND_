@@ -12,6 +12,7 @@ dotenv.config();
 const analyzeRoutes = require('./routes/analyze.routes');
 const dashboardRoutes = require('./routes/dashboard.routes');
 const recipeRoutes = require('./routes/recipe.routes');
+const authRoutes = require('./routes/auth.routes');
 const errorMiddleware = require('./middlewares/errors');
 
 const app = express();
@@ -33,11 +34,12 @@ const analyzeLimiter = rateLimit({
 app.use('/api', analyzeLimiter, analyzeRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/recipes', recipeRoutes);
+app.use('/api/auth', authRoutes);
 
 // Database Connection
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/analyze-food-app';
 console.log("MONGO_URI:", MONGO_URI);
-mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect(MONGO_URI)
     .then(() => console.log('✅ MongoDB Connected'))
     .catch((err) => console.log('❌ MongoDB Connection Error:', err));
 

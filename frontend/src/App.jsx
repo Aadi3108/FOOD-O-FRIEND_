@@ -11,6 +11,9 @@ import Substitution from "./pages/Substitution";
 import Layout from "./layout/Layout";
 
 // Wrapper for AnimatePresence
+import { AuthProvider } from "./context/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
+
 const AnimatedRoutes = () => {
     const location = useLocation();
 
@@ -20,7 +23,11 @@ const AnimatedRoutes = () => {
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/login" element={<Login />} />
 
-                <Route element={<Layout />}>
+                <Route element={
+                    <ProtectedRoute>
+                        <Layout />
+                    </ProtectedRoute>
+                }>
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/analyzer" element={<Analyzer />} />
                     <Route path="/recipes" element={<Recipes />} />
@@ -38,9 +45,11 @@ const AnimatedRoutes = () => {
 const App = () => {
     return (
         <BrowserRouter>
-            <div className="bg-dark-900 min-h-screen text-slate-100 font-sans selection:bg-brand-500/30 selection:text-brand-200">
-                <AnimatedRoutes />
-            </div>
+            <AuthProvider>
+                <div className="bg-dark-900 min-h-screen text-slate-100 font-sans selection:bg-brand-500/30 selection:text-brand-200">
+                    <AnimatedRoutes />
+                </div>
+            </AuthProvider>
         </BrowserRouter>
     );
 };
