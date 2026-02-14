@@ -17,7 +17,7 @@ const Footer = () => {
 
                     <h2 className="text-4xl lg:text-6xl font-bold mb-6">Ready to take control?</h2>
                     <p className="text-xl text-slate-400 mb-12 max-w-2xl mx-auto">
-                        Join thousands of users who have transformed their health journey with HealthAssist.
+                        Join thousands of users who have transformed their health journey with Food-O-Friend.
                     </p>
 
                     <div className="flex flex-wrap justify-center gap-6 mb-8">
@@ -43,8 +43,8 @@ const Footer = () => {
                 {/* Footer Links */}
                 <div className="flex flex-col lg:flex-row justify-between items-center gap-8 mb-12">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center font-bold">H</div>
-                        <span className="text-xl font-bold">HealthAssist</span>
+                        <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center font-bold">F</div>
+                        <span className="text-xl font-bold">Food-O-Friend</span>
                     </div>
 
                     <div className="flex flex-wrap justify-center gap-8 text-sm text-slate-400">
@@ -61,7 +61,7 @@ const Footer = () => {
 
                 <div className="text-center pt-8 border-t border-white/5">
                     <p className="text-xs text-slate-500">
-                        © 2024 HealthAssist Inc. All rights reserved. Built with <Heart size={10} className="inline text-brand-500" /> for your health.
+                        © 2024 Food-O-Friend Inc. All rights reserved. Built with <Heart size={10} className="inline text-brand-500" /> for your health.
                     </p>
                 </div>
             </div>

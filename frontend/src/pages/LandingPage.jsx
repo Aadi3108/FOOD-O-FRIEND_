@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import Hero from '../components/landing/Hero';
 import ComprehensiveCare from '../components/landing/ComprehensiveCare';
 import Features from '../components/landing/Features';
-import Stats from '../components/landing/Stats';
-import Footer from '../components/landing/Footer';
+
+
 import { Moon, Sun, Menu, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,9 +27,9 @@ const LandingPage = () => {
                 <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-500 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
-                            <span className="font-black text-xl">H</span>
+                            <span className="font-black text-xl">F</span>
                         </div>
-                        <span className="text-xl font-bold tracking-tight">HealthAssist</span>
+                        <span className="text-xl font-bold tracking-tight">Food-O-Friend</span>
                     </div>
 
                     <div className="hidden md:flex items-center gap-10">
@@ -57,10 +57,11 @@ const LandingPage = () => {
                 <Hero />
                 <ComprehensiveCare />
                 <Features />
-                <Stats />
             </main>
 
-            <Footer />
+            <footer className="py-8 text-center text-slate-500 text-sm font-medium">
+                food-o-friend 2026
+            </footer>
         </div>
     );
 };

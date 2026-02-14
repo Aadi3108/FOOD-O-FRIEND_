@@ -1,0 +1,44 @@
+{
+  "success": [],
+  "failures": [
+    {
+      "path": "/recipe/6405721fa13d0d2d35890ddd",
+      "error": "Request failed with status code 404",
+      "status": 404
+    },
+    {
+      "path": "/recipes/6405721fa13d0d2d35890ddd",
+      "error": "Request failed with status code 404",
+      "status": 404
+    },
+    {
+      "path": "/recipe/details/6405721fa13d0d2d35890ddd",
+      "error": "Request failed with status code 404",
+      "status": 404
+    },
+    {
+      "path": "/recipe-byid/recipeById",
+      "error": "Request failed with status code 404",
+      "status": 404
+    },
+    {
+      "path": "/recipe-byid/recipe",
+      "error": "Request failed with status code 404",
+      "status": 404
+    },
+    {
+      "path": "/recipe/recipeById",
+      "error": "Request failed with status code 404",
+      "status": 404
+    },
+    {
+      "path": "/recipe/get-by-id",
+      "error": "Request failed with status code 404",
+      "status": 404
+    },
+    {
+      "path": "POST /recipe/recipesinfo",
+      "error": "Request failed with status code 404"
+    }
+  ]
+}

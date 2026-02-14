@@ -5,11 +5,11 @@
 
 // Foodoscope / CoSyLab API Config
 export const FOODOSCOPE_CONFIG = {
-    BASE_URL: 'http://cosylab.iiitd.edu.in:6969',
-    BEARER_TOKEN: '5aL70wvfMjp9BG0GW0AK5NMGmC3ZMqVvz_oFdtWVoBZ02I5h',
+    BASE_URL: 'http://localhost:5000/api', // Point to local backend proxy
+    BEARER_TOKEN: '', // Backend handles auth now
     // Sub-paths for specific services
-    RECIPE_PATH: '/recipe2-api',
-    FLAVOR_PATH: '/flavordb',
+    RECIPE_PATH: '/recipes', // Path is now directly mounted on /api/recipes
+    FLAVOR_PATH: '/flavordb', // If you proxy this too, update accordingly
 };
 
 // Local Backend API Config

@@ -2,9 +2,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Play, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const Hero = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
 
     return (
         <section className="relative pt-32 pb-20 overflow-hidden">
@@ -16,7 +18,7 @@ const Hero = () => {
 
             <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 {/* Left Content */}
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, x: -30 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.6 }}
@@ -38,7 +40,7 @@ const Hero = () => {
                     </p>
 
                     <div className="flex flex-wrap gap-4">
-                        <button 
+                        <button
                             onClick={() => navigate('/login')}
                             className="px-8 py-4 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-semibold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-brand-500/25 flex items-center gap-2"
                         >
@@ -64,7 +66,7 @@ const Hero = () => {
                         {/* Header Mock */}
                         <div className="flex items-center justify-between mb-8">
                             <div>
-                                <h3 className="text-xl font-bold">Hello, Matthew</h3>
+                                <h3 className="text-xl font-bold">Hello, {user?.username || 'Matthew'}</h3>
                                 <p className="text-sm text-slate-400">Your recovery streak: 108 days</p>
                             </div>
                             <div className="w-12 h-12 rounded-2xl bg-brand-500/20 flex items-center justify-center border border-brand-500/30">

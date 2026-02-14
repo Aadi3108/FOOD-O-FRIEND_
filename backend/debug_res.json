@@ -1,0 +1,78 @@
+{
+  "searchResult": {
+    "_id": "6405721fa13d0d2d35890ddd",
+    "Recipe_id": "2726",
+    "Calories": "531.0",
+    "cook_time": "120",
+    "prep_time": "30",
+    "servings": "6",
+    "Recipe_title": "Tomato Bredie",
+    "total_time": "150",
+    "Region": "Rest Africa",
+    "Continent": "African"
+  },
+  "probes": {
+    "/recipe/2726": {
+      "status": 404,
+      "msg": "Request failed with status code 404"
+    },
+    "/recipes/2726": {
+      "status": 404,
+      "msg": "Request failed with status code 404"
+    },
+    "/recipe/details/2726": {
+      "status": 404,
+      "msg": "Request failed with status code 404"
+    },
+    "/recipe/id/2726": {
+      "status": 404,
+      "msg": "Request failed with status code 404"
+    },
+    "/recipe/with-ingredients-categories/2726": {
+      "status": 404,
+      "msg": "Request failed with status code 404"
+    },
+    "/recipe/get/2726": {
+      "status": 404,
+      "msg": "Request failed with status code 404"
+    }
+  },
+  "instructions": {
+    "recipe_id": "2726",
+    "steps": [
+      "heat oil over medium high heat in a large , heavy bottomed saucepan",
+      "dredge meat in flour , and cook in hot oil until well browned",
+      "stir in onions , and cook until onions are soft , about 5 minutes",
+      "mix in tomatoes",
+      "season with salt , black pepper , white peppercorns , bay leaves , brown sugar , vinegar , worcestershire sauce , and beef bouillon cube",
+      "cover , reduce heat , and simmer for 1 1/4 hours",
+      "stir occasionally , making sure nothing sticks on the bottom of the pot",
+      "stir in the potatoes and cook for an additional 45 minutes , until the potatoes are done and the meat is tender"
+    ]
+  },
+  "recipesInfoSample": {
+    "_id": "6405721fa13d0d2d35890d6c",
+    "Recipe_id": "2613",
+    "Calories": "409.0",
+    "cook_time": "15",
+    "prep_time": "15",
+    "servings": "3",
+    "Recipe_title": "Magpie's Easy Falafel Cakes",
+    "total_time": "60",
+    "Region": "Middle Eastern",
+    "Sub_region": "Egyptian",
+    "Continent": "African",
+    "Source": "AllRecipes",
+    "Carbohydrate, by difference (g)": "225.1172",
+    "Energy (kcal)": "1686.8298",
+    "Protein (g)": "67.8589",
+    "Total lipid (fat) (g)": "62.4829",
+    "Utensils": "skillet||processor||bowl||cup||dish||tablespoon||skillet",
+    "Processes": "cook||smooth||transfer||stir||cover||chill||place||roll||heat||heat||cook",
+    "vegan": "0.0",
+    "pescetarian": "0.0",
+    "ovo_vegetarian": "0.0",
+    "lacto_vegetarian": "1.0",
+    "ovo_lacto_vegetarian": "0.0"
+  }
+}

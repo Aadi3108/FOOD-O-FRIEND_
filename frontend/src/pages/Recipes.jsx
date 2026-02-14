@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Clock, Flame, Tag, Check, ArrowRight, Search, Loader2, Globe, Sparkles, Star } from "lucide-react";
 import { searchRecipesByTitle, getRecipesInfo, getRecipeOfDay, getRecipeInstructions } from "../services/recipeService";
 import RecipeDetailModal from "../components/RecipeDetailModal";
+import { useLocation } from "react-router-dom";
 
 const Recipes = () => {
     const [searchQuery, setSearchQuery] = useState("");
@@ -12,6 +13,7 @@ const Recipes = () => {
     const [error, setError] = useState(null);
     const [selectedRecipe, setSelectedRecipe] = useState(null);
     const [modalLoading, setModalLoading] = useState(false);
+    const location = useLocation();
 
     const fallbackSpotlight = {
         Recipe_id: "spotlight_fallback",
@@ -57,29 +59,44 @@ const Recipes = () => {
         fetchDailySpotlight();
     }, []);
 
-    const handleSearch = async (e) => {
-        if (e) e.preventDefault();
-        if (!searchQuery.trim()) return;
+    // Handle incoming search from other pages (e.g. Dashboard)
+    useEffect(() => {
+        if (location.state?.query) {
+            const q = location.state.query;
+            setSearchQuery(q);
+            executeSearch(q);
+            // Clear state to prevent re-search on simple re-renders if needed, 
+            // though React Router handles state persistence. 
+            // We'll leave it to allow refreshing to keep the search.
+        }
+    }, [location.state]);
+
+    const executeSearch = async (query) => {
+        if (!query.trim()) return;
 
         setLoading(true);
         setError(null);
         try {
-            const data = await searchRecipesByTitle(searchQuery);
+            const data = await searchRecipesByTitle(query);
             if (data && data.success && Array.isArray(data.data)) {
                 setSearchResults(data.data);
                 if (data.data.length === 0) {
-                    performStaticFallback(searchQuery);
+                    performStaticFallback(query);
                 }
             } else {
-                performStaticFallback(searchQuery);
+                performStaticFallback(query);
             }
         } catch (err) {
             console.error("Search API failed, falling back to curated list:", err);
-            // Handle "Not enough tokens" or "400" gracefully by using static results
-            performStaticFallback(searchQuery);
+            performStaticFallback(query);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSearch = async (e) => {
+        if (e) e.preventDefault();
+        executeSearch(searchQuery);
     };
 
     const performStaticFallback = (query) => {
@@ -104,9 +121,12 @@ const Recipes = () => {
     const handleSelectRecipe = async (recipe) => {
         console.log("Card clicked:", recipe.Recipe_title || recipe.title);
 
-        // Ensure instructions are initialized (either from static data or empty)
+        // 1. OPEN MODAL IMMEDIATELY with available data
         const initialInstructions = recipe.instructions || [];
         const displayTitle = recipe.Recipe_title || recipe.title;
+
+        // Persist existing details if we are clicking a card we already enriched (optimization)
+        const existingFullDetails = recipe.Protein && recipe.Calories ? recipe : null;
 
         setSelectedRecipe({
             ...recipe,
@@ -114,52 +134,64 @@ const Recipes = () => {
             instructions: initialInstructions
         });
 
-        setModalLoading(true);
-
-        // If it's a static recipe or fallback with instructions already, don't fetch from API
-        if (initialInstructions.length > 0 && (String(recipe.Recipe_id).startsWith('static') || String(recipe.Recipe_id).startsWith('spotlight'))) {
-            setModalLoading(false);
+        // If we already have full details (Protein is present), we are good.
+        // Also if it's a static/spotlight recipe, we likely have what we need (or can't get more).
+        if (existingFullDetails || (String(recipe.Recipe_id).startsWith('static') || String(recipe.Recipe_id).startsWith('spotlight'))) {
             return;
         }
 
+        // 2. BACKGROUND ENRICHMENT
+        // We act optimistically: Open modal, then hunt for data.
         try {
             const targetId = recipe.Recipe_id || recipe.id;
+            console.log(`Attempting to enrich recipe ${targetId} (${displayTitle})...`);
 
-            // MASSIVE ENRICHMENT: Fetch 8 pages (800 recipes) to find exact macros for searched items
-            const infoBatches = await Promise.all([
+            // Fetch instructions specific to ID (fast-ish) and broad data (slow) in parallel
+            // We fetch 5 pages (500 items) which covers most "relevant" search results if the DB returns them in some order
+            const fetchPromise = Promise.all([
+                targetId ? getRecipeInstructions(targetId).catch(() => null) : null,
                 getRecipesInfo(1, 100).catch(() => null),
                 getRecipesInfo(2, 100).catch(() => null),
                 getRecipesInfo(3, 100).catch(() => null),
                 getRecipesInfo(4, 100).catch(() => null),
-                getRecipesInfo(5, 100).catch(() => null),
-                getRecipesInfo(6, 100).catch(() => null),
-                getRecipesInfo(7, 100).catch(() => null),
-                getRecipesInfo(8, 100).catch(() => null),
-                targetId ? getRecipeInstructions(targetId).catch(() => null) : null
+                getRecipesInfo(5, 100).catch(() => null)
             ]);
 
-            const instructionsData = infoBatches.pop();
-            const allInfo = infoBatches.reduce((acc, batch) => acc.concat(batch?.payload?.data || []), []);
+            const results = await fetchPromise;
+            const instructionsData = results[0];
+            const broadDataPages = results.slice(1);
 
-            let detailedInfo = allInfo.find(r =>
+            const allInfo = broadDataPages.reduce((acc, batch) => acc.concat(batch?.payload?.data || []), []);
+
+            // Find our recipe in the haystack
+            const detailedInfo = allInfo.find(r =>
                 String(r.Recipe_id) === String(targetId) ||
                 r.Recipe_title === displayTitle
-            ) || {};
+            );
 
+            if (detailedInfo) {
+                console.log("Found detailed info via enrichment:", detailedInfo.Recipe_title);
+            } else {
+                console.log("Could not find detailed info in first 500 records.");
+            }
+
+            // Merge everything
             const apiInstructions = instructionsData?.steps || [];
             const finalInstructions = apiInstructions.length > 0 ? apiInstructions : initialInstructions;
 
-            setSelectedRecipe(prev => ({
-                ...prev,
-                ...detailedInfo,
-                instructions: finalInstructions.length > 0 ? finalInstructions : (detailedInfo.Processes ? detailedInfo.Processes.split('||') : [])
-            }));
+            setSelectedRecipe(prev => {
+                // Only update if we are still looking at the same recipe
+                if (!prev || (prev.Recipe_id !== recipe.Recipe_id && prev.id !== recipe.id)) return prev;
 
-            console.log("Updated recipe with details and instructions");
+                return {
+                    ...prev,
+                    ...(detailedInfo || {}), // Merge in Protein, Carbs, Fat etc.
+                    instructions: finalInstructions.length > 0 ? finalInstructions : (detailedInfo?.Processes ? detailedInfo.Processes.split('||') : prev.instructions)
+                };
+            });
+
         } catch (err) {
-            console.error("Error fetching detail info:", err);
-        } finally {
-            setModalLoading(false);
+            console.error("Error during background enrichment:", err);
         }
     };
 
@@ -174,7 +206,7 @@ const Recipes = () => {
             Recipe_id: "static_mutton",
             Recipe_title: "Lean Mutton & Barley Stew",
             desc: "Slow-cooked lean mutton with pearled barley. High in iron and fiber, ideal for sustained recovery energy.",
-            image: "https://images.unsplash.com/photo-1547592115-30fa104f40f2?auto=format&fit=crop&q=80&w=600",
+            image: "https://images.unsplash.com/photo-1626804475297-411d8c660bb0?auto=format&fit=crop&q=80&w=600",
             Region: "International",
             total_time: "45",
             Calories: "310",
@@ -213,7 +245,7 @@ const Recipes = () => {
             Recipe_id: "static_paneer",
             Recipe_title: "Mild Palak Paneer",
             desc: "Soft cottage cheese cubes in a smooth spinach puree. Excellent source of iron and protein for recovery.",
-            image: "https://images.unsplash.com/photo-1601050638917-3d019ec80112?auto=format&fit=crop&q=80&w=600",
+            image: "https://images.unsplash.com/photo-1589647363585-f4a7d3877b10?auto=format&fit=crop&q=80&w=600",
             Region: "Indian",
             total_time: "25",
             Calories: "210",
@@ -230,6 +262,25 @@ const Recipes = () => {
             ]
         },
         {
+            Recipe_id: "static_tomato_soup",
+            Recipe_title: "Tomato Basil Soup",
+            desc: "Rich tomato soup with fresh basil. Comforting, hydrating, and full of antioxidants.",
+            image: "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&q=80&w=600",
+            Region: "International",
+            total_time: "20",
+            Calories: "180",
+            Protein: "4.0g",
+            Carbs: "22.0g",
+            Fat: "8.0g",
+            tags: ["Vegetarian", "Tomato", "Comfort"],
+            instructions: [
+                "Roast tomatoes and garlic until soft.",
+                "Blend with fresh basil and vegetable broth.",
+                "Simmer for 10 minutes and season with black pepper.",
+                "Serve hot with a side of steamed bread."
+            ]
+        },
+        {
             Recipe_id: "static_salad",
             Recipe_title: "Zesty Chickpea Salad",
             desc: "Crunchy chickpeas with cucumber and lemon. High fiber and refreshing.",
@@ -240,7 +291,7 @@ const Recipes = () => {
             Protein: "12.0g",
             Carbs: "34.0g",
             Fat: "6.0g",
-            tags: ["High Fiber", "Refreshing", "Vegan"],
+            tags: ["High Fiber", "Refreshing", "Vegan", "Tomato"],
             instructions: [
                 "Toss boiled chickpeas with diced cucumber and tomatoes.",
                 "Dress with lemon juice, olive oil, and a pinch of roasted cumin.",
@@ -251,7 +302,7 @@ const Recipes = () => {
             Recipe_id: "static_1",
             Recipe_title: "Soft Khichdi",
             desc: "Go easy on spices, well-cooked rice and lentils. Rich in essential minerals and gentle on the stomach.",
-            image: "https://images.unsplash.com/photo-1543362906-acfc955b216e?auto=format&fit=crop&q=80&w=600",
+            image: "https://images.unsplash.com/photo-1516684732162-798a0062be99?auto=format&fit=crop&q=80&w=600",
             total_time: "20",
             Calories: "180",
             Protein: "9.2g",
@@ -480,7 +531,7 @@ const Recipes = () => {
                                                 onClick={() => handleSelectRecipe(recipe)}
                                                 className="bg-dark-800 rounded-3xl overflow-hidden shadow-xl border border-slate-700/50 group hover:border-brand-500/50 transition-all cursor-pointer relative z-10"
                                             >
-                                                <div className="h-48 overflow-hidden relative">
+                                                <div className="h-48 overflow-hidden relative bg-slate-800">
                                                     <div className="absolute top-4 left-4 flex gap-2 z-10">
                                                         {recipe.tags.map(tag => (
                                                             <span key={tag} className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${tag === 'Easy To Digest' ? 'bg-green-500 text-white' :

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../context/AuthContext';
 import {
     User, Mail, Phone, MapPin,
     TrendingDown, TrendingUp, Calendar,
@@ -8,14 +9,15 @@ import {
 } from 'lucide-react';
 
 const Profile = () => {
+    const { user: authUser } = useAuth();
     const [user, setUser] = useState({
-        name: "Matthew Jensen",
-        email: "matthew.j@health.com",
+        name: authUser?.username || "Guest User",
+        email: authUser?.email || "guest@example.com",
         phone: "+1 (555) 000-1234",
         location: "New York, USA",
-        avatar: "M",
+        avatar: authUser?.username?.charAt(0).toUpperCase() || "U",
         status: "Recovery Phase 2",
-        memberSince: "Dec 2025"
+        memberSince: "Feb 2026"
     });
 
     const [settings, setSettings] = useState({
@@ -57,7 +59,7 @@ const Profile = () => {
                             <div className="absolute inset-0 bg-gradient-to-r from-brand-500/20 via-transparent to-brand-500/20 animate-pulse"></div>
                         </div>
 
-                        <span className="relative z-10 text-white group-hover:scale-110 transition-all">M</span>
+                        <span className="relative z-10 text-white group-hover:scale-110 transition-all">{user.avatar}</span>
 
                         <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-all">
                             <Zap size={28} className="text-brand-400 mb-1" />

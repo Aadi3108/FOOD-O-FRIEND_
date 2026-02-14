@@ -135,31 +135,32 @@ const RecipeDetailModal = ({ recipe, onClose }) => {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
                         {/* Nutritional Stats */}
+                        {/* Nutritional Stats */}
                         <div className="md:col-span-2 grid grid-cols-2 gap-4">
                             <div className="bg-white/5 border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center">
                                 <span className="text-slate-500 text-[10px] font-bold uppercase mb-1">Calories</span>
                                 <span className="text-xl font-bold text-white flex items-center gap-2">
                                     <Flame size={16} className="text-orange-500" />
-                                    {getNutrient('calories')}
+                                    {getNutrient('calories') !== 'N/A' ? getNutrient('calories') : '--'}
                                 </span>
                             </div>
                             <div className="bg-white/5 border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center">
                                 <span className="text-slate-500 text-[10px] font-bold uppercase mb-1">Protein</span>
                                 <span className="text-xl font-bold text-white flex items-center gap-2">
                                     <Zap size={16} className="text-blue-500" />
-                                    {getNutrient('protein')}
+                                    {getNutrient('protein') !== 'N/A' ? getNutrient('protein') : '--'}
                                 </span>
                             </div>
                             <div className="bg-white/5 border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center">
                                 <span className="text-slate-500 text-[10px] font-bold uppercase mb-1">Carbs</span>
                                 <span className="text-xl font-bold text-white">
-                                    {getNutrient('carbs')}
+                                    {getNutrient('carbs') !== 'N/A' ? getNutrient('carbs') : '--'}
                                 </span>
                             </div>
                             <div className="bg-white/5 border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center">
                                 <span className="text-slate-500 text-[10px] font-bold uppercase mb-1">Fat</span>
                                 <span className="text-xl font-bold text-white">
-                                    {getNutrient('fat')}
+                                    {getNutrient('fat') !== 'N/A' ? getNutrient('fat') : '--'}
                                 </span>
                             </div>
                         </div>

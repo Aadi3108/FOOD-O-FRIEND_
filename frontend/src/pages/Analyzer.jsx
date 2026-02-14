@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, ChevronDown, CheckCircle, Info, ArrowRight, Zap } from 'lucide-react';
+import { Search, ChevronDown, CheckCircle, Info, ArrowRight, Zap, Activity } from 'lucide-react';
 import { analyzeFood } from '../services/api';
-import { getRecipesByCarbs, getRecipesByIngredients } from '../services/recipeService';
+import { getRecipesByCarbs } from '../services/recipeService';
 import { getDiabeticSubstitute } from '../services/substitutionService';
 import RecipeDetailModal from '../components/RecipeDetailModal';
 
@@ -16,9 +16,6 @@ const Analyzer = () => {
     const [result, setResult] = useState(null);
     const [alternatives, setAlternatives] = useState([]);
     const [substitutes, setSubstitutes] = useState([]);
-    const [selectedIngredients, setSelectedIngredients] = useState(['onion', 'tomato', 'paneer']);
-    const [pantryResults, setPantryResults] = useState([]);
-    const [pantryLoading, setPantryLoading] = useState(false);
     const [selectedRecipe, setSelectedRecipe] = useState(null);
     const [error, setError] = useState('');
     const [giQuery, setGiQuery] = useState('');
@@ -98,34 +95,7 @@ const Analyzer = () => {
         }
     };
 
-    const handleIngredientSearch = async () => {
-        if (selectedIngredients.length === 0) return;
-        setPantryLoading(true);
-        try {
-            const baseData = await getRecipesByIngredients(selectedIngredients[0], 1, 20);
-            const recipes = Array.isArray(baseData) ? baseData : (baseData.data || baseData.recipes || []);
 
-            if (recipes.length > 0) {
-                const ranked = recipes.map(recipe => {
-                    const title = (recipe.Recipe_title || recipe.name || recipe.title || "").toLowerCase();
-                    const ingredients = (recipe.ingredient || recipe.ingredients || "").toLowerCase();
-                    const matchCount = selectedIngredients.filter(ing => title.includes(ing.toLowerCase()) || ingredients.includes(ing.toLowerCase())).length;
-                    const matchScore = Math.floor((matchCount / selectedIngredients.length) * 100);
-                    return { ...recipe, matchScore: Math.min(100, Math.max(matchScore, 50 + Math.floor(Math.random() * 20))) };
-                });
-                setPantryResults(ranked.sort((a, b) => b.matchScore - a.matchScore));
-            } else {
-                setPantryResults([
-                    { name: "Potato & Rice Mix", matchScore: 95, Recipe_title: "Potato & Rice Mix" },
-                    { name: "Seasoned Salted Rice", matchScore: 80, Recipe_title: "Seasoned Salted Rice" }
-                ]);
-            }
-        } catch (err) {
-            console.error("Pantry search failed:", err);
-        } finally {
-            setPantryLoading(false);
-        }
-    };
 
     return (
         <div className="max-w-7xl mx-auto">
@@ -197,8 +167,8 @@ const Analyzer = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0 }}
                                 className={`rounded-[24px] p-6 shadow-2xl border-2 relative overflow-hidden ${result.riskLevel === 'High' ? 'bg-gradient-to-br from-red-900 to-red-950 border-red-500/30' :
-                                        result.riskLevel === 'Moderate' ? 'bg-gradient-to-br from-blue-900 to-blue-950 border-blue-500/30' :
-                                            'bg-gradient-to-br from-green-900 to-green-950 border-green-500/30'
+                                    result.riskLevel === 'Moderate' ? 'bg-gradient-to-br from-blue-900 to-blue-950 border-blue-500/30' :
+                                        'bg-gradient-to-br from-green-900 to-green-950 border-green-500/30'
                                     }`}
                             >
                                 <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
@@ -273,6 +243,45 @@ const Analyzer = () => {
 
                 {/* Right Sidebar */}
                 <div className="space-y-6">
+                    {/* Glycemic Load Reference Table */}
+                    <div className="bg-dark-800 rounded-[24px] p-6 border border-white/5 shadow-2xl">
+                        <h3 className="font-bold text-white mb-4 flex items-center gap-2 uppercase tracking-widest text-[10px]">
+                            <Activity className="w-4 h-4 text-brand-500" />
+                            GL Reference Scale
+                        </h3>
+                        <div className="overflow-hidden rounded-xl border border-white/5">
+                            <table className="w-full text-left text-[10px]">
+                                <thead className="bg-white/5 text-slate-500 uppercase tracking-wider font-black">
+                                    <tr>
+                                        <th className="px-3 py-2">GL Range</th>
+                                        <th className="px-3 py-2">Risk</th>
+                                        <th className="px-3 py-2 text-right">Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-white/5">
+                                    <tr className="bg-green-500/5">
+                                        <td className="px-3 py-2.5 font-bold text-white">≤ 10</td>
+                                        <td className="px-3 py-2.5 text-green-400 font-bold uppercase tracking-tighter">Low</td>
+                                        <td className="px-3 py-2.5 text-right font-black text-white/50">90-100</td>
+                                    </tr>
+                                    <tr className="bg-blue-500/5">
+                                        <td className="px-3 py-2.5 font-bold text-white">11 – 19</td>
+                                        <td className="px-3 py-2.5 text-blue-400 font-bold uppercase tracking-tighter">Moderate</td>
+                                        <td className="px-3 py-2.5 text-right font-black text-white/50">60-89</td>
+                                    </tr>
+                                    <tr className="bg-red-500/5">
+                                        <td className="px-3 py-2.5 font-bold text-white">≥ 20</td>
+                                        <td className="px-3 py-2.5 text-red-400 font-bold uppercase tracking-tighter">High</td>
+                                        <td className="px-3 py-2.5 text-right font-black text-white/50">0-59</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <p className="mt-3 text-[9px] text-slate-500 italic leading-snug">
+                            GL = (GI × Net Carbs) / 100. Lower values indicate smaller blood sugar impact.
+                        </p>
+                    </div>
+
                     {/* GI Reference Table */}
                     <div className="bg-dark-800 rounded-[24px] p-6 border border-white/5 shadow-2xl">
                         <h3 className="font-bold text-white mb-4 flex items-center gap-2 uppercase tracking-widest text-[10px]">
@@ -303,24 +312,7 @@ const Analyzer = () => {
                         </div>
                     </div>
 
-                    {/* Pantry Search */}
-                    <div className="bg-dark-800 rounded-[24px] p-6 border border-white/5 shadow-2xl">
-                        <h3 className="font-bold text-white mb-4 flex items-center gap-2 uppercase tracking-widest text-[10px]">
-                            <Zap className="w-4 h-4 text-amber-500 animate-pulse" />
-                            Pantry Master
-                        </h3>
-                        <div className="flex flex-wrap gap-1.5 mb-4">
-                            {selectedIngredients.map(ing => (
-                                <span key={ing} className="bg-slate-700/50 text-slate-300 px-2 py-1 rounded-md text-[9px] font-black uppercase flex items-center gap-1.5">
-                                    {ing}
-                                    <button onClick={() => setSelectedIngredients(selectedIngredients.filter(i => i !== ing))} className="hover:text-red-400">×</button>
-                                </span>
-                            ))}
-                        </div>
-                        <button onClick={handleIngredientSearch} disabled={pantryLoading} className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-white transition-all">
-                            {pantryLoading ? "Scanning..." : "Sync Ingredients"}
-                        </button>
-                    </div>
+
                 </div>
             </div>
 
