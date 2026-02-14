@@ -49,32 +49,4 @@ AI-powered web application that analyzes food items for carb content, providing 
    npm run dev
    ```
 
-## API Documentation
-
-### POST /api/analyze
-
-**Request Body:**
-```json
-{
-  "food": "Banana",
-  "grams": 150,
-  "mode": "diabetes"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "food": "Banana",
-    "decision": "Moderate",
-    "nutrition": { ... },
-    "message": "Moderate intake..."
-  }
-}
-```
-
-## Testing
-
-Use the provided Postman Collection or simple cURL requests to test the `/api/analyze` endpoint.
+ requests to test the `/api/analyze` endpoint.
